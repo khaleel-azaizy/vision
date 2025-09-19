@@ -1,7 +1,7 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 
 export default function MainLayout() {
   const colorScheme = useColorScheme();
@@ -17,20 +17,40 @@ export default function MainLayout() {
           left: 0,
           right: 0,
           elevation: 0,
-          backgroundColor: Colors[colorScheme ?? 'light'].background,
+          backgroundColor: Colors[colorScheme ?? 'light'].surface,
           borderTopWidth: 1,
-          borderTopColor: Colors[colorScheme ?? 'light'].tabIconDefault,
-          height: 70,
-          paddingBottom: 10,
-          paddingTop: 10,
+          borderTopColor: Colors[colorScheme ?? 'light'].border,
+          height: 80,
+          paddingBottom: 20,
+          paddingTop: 12,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: -2,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: '600',
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
         },
       }}>
       <Tabs.Screen
         name="index"
+        options={{
+          title: 'History',
+          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
+            <Ionicons name="time" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="create"
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }: { color: string; size: number }) => (
@@ -39,21 +59,15 @@ export default function MainLayout() {
         }}
       />
       <Tabs.Screen
-        name="create"
+        name="result"
         options={{
-          title: 'Create',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
-          ),
+          href: null, // This hides the screen from the tab bar
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="history-detail"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>
