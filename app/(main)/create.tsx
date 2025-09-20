@@ -1,3 +1,4 @@
+import { StatusBar } from '@/components/status-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
@@ -5,7 +6,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function CreateScreen() {
   const [userRequest, setUserRequest] = useState('');
@@ -24,17 +25,20 @@ export default function CreateScreen() {
     });
   };
 
+
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
-    <LinearGradient
-      colors={colorScheme === 'dark' 
-        ? [colors.background, colors.backgroundSecondary] 
-        : [colors.background, colors.backgroundSecondary]
-      }
-      style={styles.container}
-    >
-      <ThemedView style={styles.content}>
+    <View style={styles.screenContainer}>
+      <StatusBar />
+      <LinearGradient
+        colors={colorScheme === 'dark'
+          ? [colors.background, colors.backgroundSecondary]
+          : [colors.background, colors.backgroundSecondary]
+        }
+        style={styles.container}
+      >
+        <ThemedView style={[styles.content, styles.scrollContent]}>
         <ThemedView style={styles.header}>
           <ThemedText type="title" style={[styles.title, { color: colors.text }]}>
             Welcome to Vision
@@ -80,19 +84,26 @@ export default function CreateScreen() {
             </TouchableOpacity>
           </LinearGradient>
         </ThemedView>
-      </ThemedView>
-    </LinearGradient>
+        </ThemedView>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
   content: {
     flex: 1,
     padding: 24,
-    paddingTop: 80,
+    paddingTop: 20,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Add extra padding to account for tab bar
   },
   header: {
     alignItems: 'center',
@@ -102,8 +113,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 12,
     lineHeight: 40,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 18,
@@ -138,14 +149,6 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 16,
-    shadowColor: '#6366F1',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
   },
   buttonTouchable: {
     padding: 20,

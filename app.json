@@ -43,6 +43,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "EXPO_PUBLIC_DEEPSEEK_API_KEY": "sk-bed1da6178fd416bba6faa57b8b29b73"
     }
   }
 }

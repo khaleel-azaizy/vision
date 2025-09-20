@@ -1,17 +1,24 @@
-// AI Service Integration
-// Replace this with your actual AI API integration
+// AI Service Integration (DeepSeek)
+import Constants from 'expo-constants';
+
+// Fallback key (requested): used only if env and app.json extra are not set
+const HARDCODED_DEEPSEEK_API_KEY = 'sk-bed1da6178fd416bba6faa57b8b29b73';
 
 export interface AIRequest {
   userRequest: string;
   answerFormat: string;
-  shopsData: ShopData[];
+  shopsData?: ShopData[]; // optional; we may send Firestore catalog instead
 }
 
 export interface ShopData {
   name: string;
-  url: string;
-  apiKey?: string;
-  categories: string[];
+  url?: string;
+  categories?: string[];
+  sampleItems?: Array<{
+    name: string;
+    price: string;
+    category: string;
+  }>;
 }
 
 export interface AIResponse {
@@ -31,106 +38,80 @@ export interface Product {
   availability: string;
   url?: string;
   imageUrl?: string;
+  alternatives?: ProductAlternative[];
 }
 
-// Mock shop data - replace with your actual shop integrations
-const MOCK_SHOPS: ShopData[] = [
-  {
-    name: 'Home Depot',
-    url: 'https://homedepot.com',
-    categories: ['tools', 'hardware', 'lumber', 'paint']
-  },
-  {
-    name: 'Lowe\'s',
-    url: 'https://lowes.com',
-    categories: ['tools', 'hardware', 'lumber', 'paint']
-  },
-  {
-    name: 'Amazon',
-    url: 'https://amazon.com',
-    categories: ['tools', 'hardware', 'electronics', 'general']
-  },
-  {
-    name: 'Michaels',
-    url: 'https://michaels.com',
-    categories: ['crafts', 'art supplies', 'tools']
-  }
-];
-
-// Mock AI response generator
-export const generateAIResponse = async (userRequest: string): Promise<AIResponse> => {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Mock response based on user request
-  const mockProducts: Product[] = generateMockProducts(userRequest);
-  const totalCost = calculateTotalCost(mockProducts);
-  
-  return {
-    products: mockProducts,
-    totalCost,
-    estimatedTime: '2-4 hours',
-    difficulty: 'Medium'
-  };
-};
+export interface ProductAlternative {
+  name: string;
+  price: string;
+  store: string;
+  description: string;
+  availability: string;
+  url?: string;
+}
 
 // DeepSeek API integration
 export const callAIService = async (request: AIRequest): Promise<AIResponse> => {
   try {
-    const prompt = `You are a helpful assistant that creates detailed shopping lists for DIY projects. 
+    // Use the provided answer format and inject the user request
+    const promptFromTemplate = (request.answerFormat || "").replace('{userRequest}', request.userRequest);
 
-User Request: "${request.userRequest}"
-
-Please provide a detailed shopping list with the following information for each item:
-- Product name
-- Price estimate (in $XX.XX format)
-- Store recommendation (choose from: Home Depot, Lowe's, Amazon, Michaels, IKEA)
-- Category (either "product" or "tool")
-- Brief description
-- Availability status
-
-Consider the following stores and their specialties:
-- Home Depot: Tools, hardware, lumber, paint, electrical
-- Lowe's: Tools, hardware, lumber, paint, appliances
-- Amazon: General products, electronics, tools, fast delivery
-- Michaels: Crafts, art supplies, tools, creative materials
-- IKEA: Furniture, home organization, simple tools
-
-Please respond with a JSON object in this exact format:
-{
-  "products": [
-    {
-      "name": "Product name",
-      "price": "$XX.XX",
-      "store": "Store name",
-      "category": "product",
-      "description": "Brief description",
-      "availability": "In Stock"
+    // Build a short catalog appendix (first N items per store) if provided
+    let catalogAppendix = '';
+    if (request.shopsData && request.shopsData.length > 0) {
+      const lines: string[] = [];
+      const lowerReq = (request.userRequest || '').toLowerCase();
+      const isApplePie = lowerReq.includes('apple pie') || lowerReq.includes('pie');
+      lines.push('\nCATALOG (use these exact shop names, locations and items; prefer relevant items):');
+      for (const shop of request.shopsData.slice(0, 8)) {
+        // We may pass location info via name suffix if available from Firestore caller
+        lines.push(`- ${shop.name}`);
+        let items = shop.sampleItems ?? [];
+        // If user asked for apple pie, prioritize relevant ingredients/tools from the catalog
+        if (isApplePie) {
+          const keywords = ['apple', 'flour', 'sugar', 'cinnamon', 'nutmeg', 'butter', 'egg', 'vanilla', 'pie', 'crust', 'rolling pin', 'pastry', 'lemon', 'cornstarch', 'foil', 'parchment', 'cooling rack'];
+          const scored = items.map((it) => {
+            const name = (it.name || '').toLowerCase();
+            const score = keywords.reduce((s, kw) => (name.includes(kw) ? s + 1 : s), 0);
+            return { it, score };
+          }).sort((a, b) => b.score - a.score);
+          items = scored.map((x) => x.it);
+        }
+        items = items.slice(0, 12);
+        for (const it of items) {
+          lines.push(`  • ${it.name} | ${it.price} | ${it.category}`);
+        }
+      }
+      catalogAppendix = '\n' + lines.join('\n');
     }
-  ],
-  "totalCost": XX.XX,
-  "estimatedTime": "X hours",
-  "difficulty": "Easy"
-}
 
-Make sure to include both materials/products and tools needed for the project.`;
+    const extra = ((Constants as any)?.expoConfig?.extra ?? (Constants as any)?.manifest?.extra ?? {}) as Record<string, any>;
+    const apiKey = (process.env as any)?.EXPO_PUBLIC_DEEPSEEK_API_KEY
+      || extra?.EXPO_PUBLIC_DEEPSEEK_API_KEY
+      || extra?.DEEPSEEK_API_KEY
+      || HARDCODED_DEEPSEEK_API_KEY;
+    if (!apiKey) throw new Error('DeepSeek API key missing. Set EXPO_PUBLIC_DEEPSEEK_API_KEY env var or add it to expo.extra in app.json.');
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer sk-3e1a48cc8bc24810aff25e914b2f18ec',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [
           {
+            role: 'system',
+            content: 'You are an assistant that outputs strictly valid JSON without code fences. Do not include any commentary.'
+          },
+          {
             role: 'user',
-            content: prompt
+            content: promptFromTemplate + catalogAppendix
           }
         ],
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.5,
+        max_tokens: 2200
       }),
     });
 
@@ -139,131 +120,95 @@ Make sure to include both materials/products and tools needed for the project.`;
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
-    
-    // Parse the JSON response from DeepSeek
+    const raw = data?.choices?.[0]?.message?.content ?? '';
+
+    // Parse the JSON response from DeepSeek (strip code fences, attempt repairs)
     try {
-      const parsedResponse = JSON.parse(aiResponse);
-      return parsedResponse;
+      const jsonStr = extractJson(raw);
+      const parsed = safeParseJsonWithRepair(jsonStr);
+      return parsed;
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
-      // Fallback to mock data if parsing fails
-      return generateAIResponse(request.userRequest);
+      console.error('Failed to parse AI response:', parseError, raw);
+      throw new Error('AI response was not valid JSON');
     }
   } catch (error) {
     console.error('DeepSeek API Error:', error);
-    // Fallback to mock data
-    return generateAIResponse(request.userRequest);
+    // Do not fallback to mock data; propagate error to caller
+    throw error instanceof Error ? error : new Error('AI request failed');
   }
 };
 
-// Helper functions
-const generateMockProducts = (userRequest: string): Product[] => {
-  const request = userRequest.toLowerCase();
-  
-  if (request.includes('coffee table') || request.includes('table')) {
-    return [
-      {
-        id: '1',
-        name: 'Wooden Coffee Table Kit',
-        price: '$89.99',
-        store: 'Home Depot',
-        category: 'product',
-        description: 'Complete kit with all materials needed',
-        availability: 'In Stock',
-        url: 'https://homedepot.com/coffee-table-kit'
-      },
-      {
-        id: '2',
-        name: 'Cordless Drill',
-        price: '$45.99',
-        store: 'Lowe\'s',
-        category: 'tool',
-        description: '12V cordless drill with battery and charger',
-        availability: 'In Stock',
-        url: 'https://lowes.com/cordless-drill'
-      },
-      {
-        id: '3',
-        name: 'Wood Stain (Dark Oak)',
-        price: '$12.50',
-        store: 'Amazon',
-        category: 'product',
-        description: '250ml can of water-based wood stain',
-        availability: 'Prime Delivery',
-        url: 'https://amazon.com/wood-stain'
-      }
-    ];
+// Attempt to extract a JSON substring from a response that may include code fences or text
+function extractJson(text: string): string {
+  const fenceMatch = text.match(/```(?:json)?\n([\s\S]*?)```/i);
+  if (fenceMatch && fenceMatch[1]) {
+    return fenceMatch[1].trim();
   }
-  
-  if (request.includes('shelf') || request.includes('bookcase')) {
-    return [
-      {
-        id: '1',
-        name: 'Floating Shelf Kit',
-        price: '$34.99',
-        store: 'IKEA',
-        category: 'product',
-        description: 'Set of 3 floating shelves with mounting hardware',
-        availability: 'In Stock'
-      },
-      {
-        id: '2',
-        name: 'Level',
-        price: '$8.99',
-        store: 'Home Depot',
-        category: 'tool',
-        description: '24-inch spirit level for accurate mounting',
-        availability: 'In Stock'
-      }
-    ];
+  // If there are stray characters before or after the JSON, try to find the first { and last }
+  const first = text.indexOf('{');
+  const last = text.lastIndexOf('}');
+  if (first !== -1 && last !== -1 && last > first) {
+    return text.slice(first, last + 1);
   }
-  
-  // Default response for other requests
-  return [
-    {
-      id: '1',
-      name: 'Basic Tool Set',
-      price: '$29.99',
-      store: 'Amazon',
-      category: 'tool',
-      description: 'Essential tools for DIY projects',
-      availability: 'Prime Delivery'
-    },
-    {
-      id: '2',
-      name: 'Project Materials',
-      price: '$49.99',
-      store: 'Home Depot',
-      category: 'product',
-      description: 'Materials based on your project needs',
-      availability: 'In Stock'
-    }
-  ];
-};
+  return text.trim();
+}
 
-export const calculateTotalCost = (products: Product[]): number => {
-  return products.reduce((total, product) => {
-    const price = parseFloat(product.price.replace('$', ''));
-    return total + price;
-  }, 0);
-};
+// Attempts to repair common JSON issues from LLM output and parse it
+function safeParseJsonWithRepair(text: string): any {
+  // 1) Remove trailing commas before ] or }
+  let repaired = text.replace(/,\s*(\]|\})/g, '$1');
+  // 2) Ensure quotes are straight (replace fancy quotes)
+  repaired = repaired
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"');
+  // 3) Attempt to close any unclosed string at end of line (best effort)
+  // Not fully robust, but helps when LLM truncates a URL or line
+  // 4) Remove dangling backticks left by code blocks
+  repaired = repaired.replace(/```/g, '');
+  // 5) Try parsing; if it fails, throw the original error
+  return JSON.parse(repaired);
+}
+
+// (No mock helpers; AI must use catalog provided in the prompt)
 
 // Answer format template for AI requests
 export const ANSWER_FORMAT = `
 Please provide a detailed shopping list for the following project request: "{userRequest}"
 
+IMPORTANT:
+1) Use ONLY the shops and items provided in the appended CATALOG section. Do not invent new shops.
+2) Prefer items that closely match the user's request. If an exact item is not listed, pick the closest comparable item from the same shop.
+3) For each needed category, include 2-3 alternatives from DIFFERENT shops in the catalog when possible.
+
 Format your response as JSON with the following structure:
 {
   "products": [
     {
-      "name": "Product name",
+      "name": "Specific product name (use a name from the catalog when possible)",
       "price": "$XX.XX",
-      "store": "Store name",
+      "store": "Shop name EXACTLY as shown in the catalog",
       "category": "product" or "tool",
-      "description": "Brief description",
+      "description": "Why this item fits and any specs",
       "availability": "In Stock" or "Out of Stock",
-      "url": "Product URL if available"
+      "url": "Product URL if available",
+      "alternatives": [
+        {
+          "name": "Alternative item",
+          "price": "$XX.XX",
+          "store": "Different shop from the catalog",
+          "description": "Why comparable / trade-offs",
+          "availability": "In Stock" or "Out of Stock",
+          "url": "Product URL if available"
+        },
+        {
+          "name": "Budget option",
+          "price": "$XX.XX", 
+          "store": "Another different shop from the catalog",
+          "description": "Pros/cons",
+          "availability": "In Stock" or "Out of Stock",
+          "url": "Product URL if available"
+        }
+      ]
     }
   ],
   "totalCost": XX.XX,
@@ -271,15 +216,7 @@ Format your response as JSON with the following structure:
   "difficulty": "Easy" or "Medium" or "Hard"
 }
 
-Consider the following stores and their specialties:
-- Home Depot: Tools, hardware, lumber, paint
-- Lowe's: Tools, hardware, lumber, paint  
-- Amazon: General products, electronics, tools
-- Michaels: Crafts, art supplies, tools
-
-Prioritize products that are:
-1. In stock and readily available
-2. Good value for money
-3. Appropriate for the skill level
-4. From reputable stores
+STRICT RULES:
+- Use ONLY these shops and items. If something is missing, pick the closest alternative from the same catalog.
+- Return STRICT, valid JSON only. No code fences. No commentary.
 `;

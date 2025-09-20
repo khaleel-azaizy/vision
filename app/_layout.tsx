@@ -4,8 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { initLocalDb } from '@/services/localdb';
-import { useEffect } from 'react';
 
 export const unstable_settings = {
   anchor: '(main)',
@@ -13,9 +11,6 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  useEffect(() => {
-    initLocalDb();
-  }, []);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
