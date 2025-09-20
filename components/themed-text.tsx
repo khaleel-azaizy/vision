@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/theme';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -60,6 +61,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontSize: 16,
     fontWeight: '500',
-    color: '#6366F1', // Updated to new primary color
+    color: Colors.light.primary,
   },
 });

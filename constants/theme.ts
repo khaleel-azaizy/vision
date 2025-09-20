@@ -5,62 +5,79 @@
 
 import { Platform } from 'react-native';
 
-// Beige-focused light-only palette with black accents
-const beigeStrong = '#EADBC8'; // strong beige background
-const beigeLighter = '#F5EDE3';
-const beigeLightest = '#FBF7F2';
-const beigeBorder = '#D6C4B2';
-const black = '#111111';
-const blackSoft = '#2B2B2B';
-const graySoft = '#6B6B6B';
+// Modern cool-toned palette (Indigo/Teal with soft neutrals)
+const indigo600 = '#4F46E5';
+const indigo400 = '#818CF8';
+const indigo800 = '#3730A3';
+
+const teal500 = '#14B8A6';
+const teal400 = '#2DD4BF';
+const teal700 = '#0F766E';
+
+const orange500 = '#F97316';
+const orange300 = '#FDBA74';
+const orange700 = '#C2410C';
+
+const slate900 = '#0F172A';
+const slate600 = '#475569';
+const slate400 = '#94A3B8';
+const white = '#FFFFFF';
+
+const bg = '#F6F8FB';
+const bg2 = '#EEF2F7';
+const bg3 = '#E2E8F0';
+const surface = '#FFFFFF';
+const surface2 = '#F8FAFC';
+const surface3 = '#F1F5F9';
+const border = '#E5E7EB';
+const borderLight = '#EEF2F7';
+const borderDark = '#CBD5E1';
 
 export const Colors = {
   light: {
-    // Primary/Accent (black accent)
-    primary: black,
-    primaryLight: blackSoft,
-    primaryDark: '#000000',
+    // Primary / Secondary / Accent
+    primary: indigo600,
+    primaryLight: indigo400,
+    primaryDark: indigo800,
 
-    // Secondary kept neutral/dark for subtle accents
-    secondary: blackSoft,
-    secondaryLight: '#3D3D3D',
-    secondaryDark: '#000000',
+    secondary: teal500,
+    secondaryLight: teal400,
+    secondaryDark: teal700,
 
-    // Accent (alias to primary for consistency)
-    accent: black,
-    accentLight: blackSoft,
-    accentDark: '#000000',
+    accent: orange500,
+    accentLight: orange300,
+    accentDark: orange700,
 
     // Status colors
-    success: '#16A34A',
-    warning: '#D97706',
-    error: '#DC2626',
-    info: '#2563EB',
-    destructive: '#DC2626',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+    destructive: '#EF4444',
 
     // Neutral colors
-    text: black,
-    textSecondary: graySoft,
-    textTertiary: '#9CA3AF',
-    textInverse: '#FFFFFF',
+    text: slate900,
+    textSecondary: slate600,
+    textTertiary: slate400,
+    textInverse: white,
 
-    background: beigeStrong,
-    backgroundSecondary: beigeLighter,
-    backgroundTertiary: beigeLightest,
+    background: bg,
+    backgroundSecondary: bg2,
+    backgroundTertiary: bg3,
 
-    surface: beigeLighter,
-    surfaceSecondary: beigeLightest,
-    surfaceTertiary: '#FFFFFF',
+    surface: surface,
+    surfaceSecondary: surface2,
+    surfaceTertiary: surface3,
 
-    border: beigeBorder,
-    borderLight: '#E8DCD0',
-    borderDark: '#C7B39D',
+    border: border,
+    borderLight: borderLight,
+    borderDark: borderDark,
 
     // Legacy support
-    tint: black,
-    icon: graySoft,
-    tabIconDefault: '#8C8C8C',
-    tabIconSelected: black,
+    tint: indigo600,
+    icon: slate600,
+    tabIconDefault: '#9CA3AF',
+    tabIconSelected: indigo600,
   },
   // Force dark theme to mirror light for a light-only experience
   dark: {} as any,

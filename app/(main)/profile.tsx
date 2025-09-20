@@ -252,9 +252,9 @@ export default function ProfileScreen() {
             onPress={() => router.push('/(main)/signin')}
             activeOpacity={0.8}
           >
-            <ThemedView style={[styles.recentItemIcon, { backgroundColor: colors.primary + '15' }]}> 
+            <View style={styles.recentItemIcon}> 
               <Ionicons name="log-in" size={22} color={colors.primary} />
-            </ThemedView>
+            </View>
             <ThemedView style={styles.recentItemText}>
               <ThemedText style={[styles.recentItemTitle, { color: colors.text }]}>Sign in to sync your plans</ThemedText>
               <ThemedText style={[styles.recentItemMeta, { color: colors.textSecondary }]}>Tap to sign in or register</ThemedText>
@@ -265,9 +265,9 @@ export default function ProfileScreen() {
         
         {recentItems.length === 0 && isAuthenticated && (
           <ThemedView style={[styles.recentItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <ThemedView style={[styles.recentItemIcon, { backgroundColor: colors.primary + '15' }]}> 
+            <View style={styles.recentItemIcon}> 
               <Ionicons name="document-text" size={22} color={colors.primary} />
-            </ThemedView>
+            </View>
             <ThemedView style={styles.recentItemText}>
               <ThemedText style={[styles.recentItemTitle, { color: colors.text }]}>No projects yet</ThemedText>
               <ThemedText style={[styles.recentItemMeta, { color: colors.textSecondary }]}>Create your first plan in the Home tab</ThemedText>
@@ -285,9 +285,9 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => handleItemPress(item.id)}
           >
-            <ThemedView style={[styles.recentItemIcon, { backgroundColor: colors.primary + '15' }]}>
+            <View style={styles.recentItemIcon}>
               <Ionicons name="document-text" size={22} color={colors.primary} />
-            </ThemedView>
+            </View>
             <ThemedView style={styles.recentItemText}>
               <ThemedText style={[styles.recentItemTitle, { color: colors.text }]}>
                 {item.title}

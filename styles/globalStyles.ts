@@ -1,4 +1,5 @@
-import { StyleSheet, Dimensions, Platform } from 'react-native';
+import { Colors } from '@/constants/theme';
+import { Dimensions, Platform, StyleSheet } from 'react-native';
 
 // Get device dimensions
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -9,102 +10,85 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Color Palette
 export const colors = {
-  // Primary Colors
-  primary: '#007AFF',
-  primaryLight: '#4DA6FF',
-  primaryDark: '#0056CC',
-  primaryPressed: '#004499',
-  
-  // Secondary Colors
-  secondary: '#5856D6',
-  secondaryLight: '#8B89FF',
-  secondaryDark: '#3634A3',
-  
-  // Accent Colors
-  accent: '#FF6B35',
-  accentLight: '#FF8A5B',
-  accentDark: '#E55A2B',
-  
-  // Status Colors
-  success: '#34C759',
-  successLight: '#5DD87A',
-  successDark: '#28A745',
-  
-  warning: '#FF9500',
-  warningLight: '#FFB340',
-  warningDark: '#E8890C',
-  
-  error: '#FF3B30',
-  errorLight: '#FF6B5A',
-  errorDark: '#DC2626',
-  
-  info: '#007AFF',
-  infoLight: '#4DA6FF',
-  infoDark: '#0056CC',
-  
-  // Neutral Colors (Light Theme)
+  // Map to unified Colors palette (light-only theme mirrored to dark)
+  primary: Colors.light.primary,
+  primaryLight: Colors.light.primaryLight,
+  primaryDark: Colors.light.primaryDark,
+  primaryPressed: Colors.light.primary,
+
+  secondary: Colors.light.secondary,
+  secondaryLight: Colors.light.secondaryLight,
+  secondaryDark: Colors.light.secondaryDark,
+
+  accent: Colors.light.accent,
+  accentLight: Colors.light.accentLight,
+  accentDark: Colors.light.accentDark,
+
+  success: Colors.light.success,
+  warning: Colors.light.warning,
+  error: Colors.light.error,
+  info: Colors.light.info,
+
   light: {
-    background: '#FFFFFF',
-    backgroundSecondary: '#F8F9FA',
-    backgroundTertiary: '#F1F3F4',
-    
-    surface: '#FFFFFF',
-    surfaceSecondary: '#F5F5F7',
-    surfaceTertiary: '#E5E5EA',
-    
-    textPrimary: '#000000',
-    textSecondary: '#3C3C43',
-    textTertiary: '#8E8E93',
-    textQuaternary: '#C7C7CC',
-    textInverse: '#FFFFFF',
-    
-    border: '#D1D1D6',
-    borderLight: '#E5E5EA',
-    borderDark: '#C7C7CC',
-    
-    shadow: 'rgba(0, 0, 0, 0.1)',
-    shadowMedium: 'rgba(0, 0, 0, 0.15)',
-    shadowStrong: 'rgba(0, 0, 0, 0.2)',
-    
-    overlay: 'rgba(0, 0, 0, 0.4)',
+    background: Colors.light.background,
+    backgroundSecondary: Colors.light.backgroundSecondary,
+    backgroundTertiary: Colors.light.backgroundTertiary,
+
+    surface: Colors.light.surface,
+    surfaceSecondary: Colors.light.surfaceSecondary,
+    surfaceTertiary: Colors.light.surfaceTertiary,
+
+    textPrimary: Colors.light.text,
+    textSecondary: Colors.light.textSecondary,
+    textTertiary: Colors.light.textTertiary,
+    textQuaternary: Colors.light.textTertiary,
+    textInverse: Colors.light.textInverse,
+
+    border: Colors.light.border,
+    borderLight: Colors.light.borderLight,
+    borderDark: Colors.light.borderDark,
+
+    shadow: 'rgba(0, 0, 0, 0.08)',
+    shadowMedium: 'rgba(0, 0, 0, 0.12)',
+    shadowStrong: 'rgba(0, 0, 0, 0.18)',
+
+    overlay: 'rgba(0, 0, 0, 0.35)',
   },
-  
-  // Neutral Colors (Dark Theme)
+
   dark: {
-    background: '#000000',
-    backgroundSecondary: '#1C1C1E',
-    backgroundTertiary: '#2C2C2E',
-    
-    surface: '#1C1C1E',
-    surfaceSecondary: '#2C2C2E',
-    surfaceTertiary: '#3A3A3C',
-    
-    textPrimary: '#FFFFFF',
-    textSecondary: '#EBEBF5',
-    textTertiary: '#8E8E93',
-    textQuaternary: '#48484A',
-    textInverse: '#000000',
-    
-    border: '#38383A',
-    borderLight: '#48484A',
-    borderDark: '#2C2C2E',
-    
-    shadow: 'rgba(0, 0, 0, 0.3)',
-    shadowMedium: 'rgba(0, 0, 0, 0.4)',
-    shadowStrong: 'rgba(0, 0, 0, 0.5)',
-    
-    overlay: 'rgba(0, 0, 0, 0.6)',
+    background: Colors.dark.background,
+    backgroundSecondary: Colors.dark.backgroundSecondary,
+    backgroundTertiary: Colors.dark.backgroundTertiary,
+
+    surface: Colors.dark.surface,
+    surfaceSecondary: Colors.dark.surfaceSecondary,
+    surfaceTertiary: Colors.dark.surfaceTertiary,
+
+    textPrimary: Colors.dark.text,
+    textSecondary: Colors.dark.textSecondary,
+    textTertiary: Colors.dark.textTertiary,
+    textQuaternary: Colors.dark.textTertiary,
+    textInverse: Colors.dark.textInverse,
+
+    border: Colors.dark.border,
+    borderLight: Colors.dark.borderLight,
+    borderDark: Colors.dark.borderDark,
+
+    shadow: 'rgba(0, 0, 0, 0.4)',
+    shadowMedium: 'rgba(0, 0, 0, 0.5)',
+    shadowStrong: 'rgba(0, 0, 0, 0.6)',
+
+    overlay: 'rgba(0, 0, 0, 0.55)',
   },
-  
-  // Gradient Colors
+
   gradients: {
-    primary: ['#007AFF', '#4DA6FF'],
-    secondary: ['#5856D6', '#8B89FF'],
-    accent: ['#FF6B35', '#FF8A5B'],
-    success: ['#34C759', '#5DD87A'],
-    sunset: ['#FF6B35', '#F7931E', '#FFD700'],
-    ocean: ['#007AFF', '#00C7BE', '#34C759'],
-    purple: ['#5856D6', '#AF52DE', '#FF2D92'],
+    primary: [Colors.light.primary, Colors.light.primaryLight],
+    secondary: [Colors.light.secondary, Colors.light.secondaryLight],
+    accent: [Colors.light.accent, Colors.light.accentLight],
+    success: [Colors.light.success, '#2ED573'],
+    sunset: ['#E76F51', '#F4A261', '#E9C46A'],
+    ocean: ['#264653', '#2A9D8F', '#E9C46A'],
+    purple: ['#7F5AF0', '#B693FE', '#E2CFFE'],
   },
 };
 
@@ -207,31 +191,19 @@ export const appDimensions = {
 // Shadows
 export const shadows = {
   small: {
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 2,
+    boxShadow: Platform.select({ web: '0 1px 3px rgba(0,0,0,0.08)', default: undefined }),
     elevation: 2,
   },
   medium: {
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
+    boxShadow: Platform.select({ web: '0 2px 8px rgba(0,0,0,0.12)', default: undefined }),
     elevation: 4,
   },
   large: {
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
+    boxShadow: Platform.select({ web: '0 4px 14px rgba(0,0,0,0.14)', default: undefined }),
     elevation: 8,
   },
   xl: {
-    shadowColor: colors.light.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
+    boxShadow: Platform.select({ web: '0 8px 24px rgba(0,0,0,0.18)', default: undefined }),
     elevation: 12,
   },
 };
@@ -239,31 +211,19 @@ export const shadows = {
 // Dark theme shadows
 export const darkShadows = {
   small: {
-    shadowColor: colors.dark.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 1,
-    shadowRadius: 2,
+    boxShadow: Platform.select({ web: '0 1px 3px rgba(0,0,0,0.25)', default: undefined }),
     elevation: 2,
   },
   medium: {
-    shadowColor: colors.dark.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
+    boxShadow: Platform.select({ web: '0 2px 8px rgba(0,0,0,0.35)', default: undefined }),
     elevation: 4,
   },
   large: {
-    shadowColor: colors.dark.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
+    boxShadow: Platform.select({ web: '0 4px 14px rgba(0,0,0,0.45)', default: undefined }),
     elevation: 8,
   },
   xl: {
-    shadowColor: colors.dark.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
+    boxShadow: Platform.select({ web: '0 8px 24px rgba(0,0,0,0.55)', default: undefined }),
     elevation: 12,
   },
 };
@@ -664,9 +624,7 @@ export const createThemedStyles = (isDark: boolean, styles: any) => {
 
 // Export everything
 export {
-  screenWidth,
-  screenHeight,
-  layoutDimensions,
+  layoutDimensions, screenHeight, screenWidth
 };
 
 export default globalStyles;
