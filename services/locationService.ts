@@ -24,7 +24,7 @@ export class LocationService {
       // For web development, we'll use a predefined mapping
       // In production, you'd use Google Maps JavaScript API or a backend proxy
       const locationMap = this.getLocationMapping();
-      const coordKey = `${lat.toFixed(7)},${lng.toFixed(7)}`;
+      const coordKey = `${lat.toFixed(4)},${lng.toFixed(4)}`; // relax precision to increase hits
       
       if (locationMap[coordKey]) {
         return locationMap[coordKey];
@@ -35,7 +35,7 @@ export class LocationService {
         const [mapLat, mapLng] = key.split(',').map(Number);
         const distance = this.calculateDistance(lat, lng, mapLat, mapLng);
         
-        if (distance < 1) { // Within 1km
+        if (distance < 5) { // Within 5km for nearby cities
           return value;
         }
       }
@@ -66,18 +66,25 @@ export class LocationService {
       
       // Haifa area
       '32.7940,34.9896': 'Haifa, Israel',
+
+      // Tamra / Lower Galilee area (approx)
+      '32.8350,35.1850': 'Tamra, Israel',
+      '32.8330,35.1830': 'Tamra, Israel',
+      '32.8670,35.2830': 'Sakhnin, Israel',
+      '32.8500,35.3330': 'Arraba, Israel',
+      '32.8500,35.2000': 'Kabul, Israel',
       
       // New York area
-      '40.7128,74.0060': 'New York, NY',
-      '40.7589,73.9851': 'New York, NY',
+      '40.7128,-74.0060': 'New York, NY',
+      '40.7589,-73.9851': 'New York, NY',
       
       // San Francisco area
-      '37.7749,122.4194': 'San Francisco, CA',
-      '37.7849,122.4094': 'San Francisco, CA',
+      '37.7749,-122.4194': 'San Francisco, CA',
+      '37.7849,-122.4094': 'San Francisco, CA',
       
       // London area
-      '51.5074,0.1278': 'London, England',
-      '51.5154,0.1178': 'London, England',
+      '51.5074,-0.1278': 'London, England',
+      '51.5154,-0.1178': 'London, England',
       
       // Paris area
       '48.8566,2.3522': 'Paris, France',

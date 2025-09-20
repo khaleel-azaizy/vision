@@ -54,8 +54,8 @@ export function StatusBar() {
 
         // Get current position
         const currentPosition = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-          maximumAge: 300000, // 5 minutes
+          accuracy: Location.Accuracy.High,
+          maximumAge: 120000, // 2 minutes
         });
 
         // Resolve coordinates into a human-readable location
@@ -65,6 +65,27 @@ export function StatusBar() {
 
           console.log('Location coordinates:', lat, lng);
 
+          // Detect known "default" or suspicious coordinates and try IP geolocation
+          const isSuspicious =
+            (Math.abs(lat - 31.7816832) < 0.0001 && Math.abs(lng - 35.1961088) < 0.0001) ||
+            (lat === 0 && lng === 0);
+          if (isSuspicious) {
+            try {
+              const ipRes = await fetch('https://api.bigdatacloud.net/data/ip-geolocation?localityLanguage=en');
+              if (ipRes.ok) {
+                const ip = await ipRes.json();
+                const city = ip.city || ip.locality || ip.principalSubdivision;
+                const region = ip.principalSubdivision || ip.countryName;
+                if (city || region) {
+                  setLocation(city && region ? `${city}, ${region}` : (city || region));
+                  return;
+                }
+              }
+            } catch (_) {
+              // ignore and continue normal flow
+            }
+          }
+
           // First try a CORS-friendly reverse geocoding service
           try {
             const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
@@ -72,7 +93,8 @@ export function StatusBar() {
             if (bdcRes.ok) {
               const bdc = await bdcRes.json();
               // Prefer city/locality + region/country
-              const city = bdc.city || bdc.locality || bdc.localityInfo?.administrative?.find((a: any) => a.order === 5)?.name;
+              const admin = Array.isArray(bdc?.localityInfo?.administrative) ? bdc.localityInfo.administrative : [];
+              const city = bdc.city || bdc.locality || (admin.find((a: any) => a.order === 5)?.name || admin.find((a: any) => a.description?.toLowerCase().includes('city'))?.name);
               const region = bdc.principalSubdivision || bdc.countryName;
               if (city || region) {
                 setLocation(city && region ? `${city}, ${region}` : (city || region));
