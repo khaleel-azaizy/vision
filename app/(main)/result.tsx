@@ -215,8 +215,6 @@ export default function ResultScreen() {
   const [planLowest, setPlanLowest] = useState<Product[] | null>(null);
   const [planFewest, setPlanFewest] = useState<Product[] | null>(null);
   const [planBoth, setPlanBoth] = useState<Product[] | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'base' | 'lowest' | 'fewestShops' | 'both'>('base');
-  const [sortMode, setSortMode] = useState<'none' | 'closest' | 'lowest' | 'smart'>('none');
   const [optimizeMode, setOptimizeMode] = useState<'none' | 'lowest' | 'fewestShops' | 'both'>('none');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [optimizing, setOptimizing] = useState(false);
@@ -280,51 +278,8 @@ export default function ResultScreen() {
     return 2 * R * Math.asin(Math.sqrt(x));
   };
 
-  const activeProducts = (() => {
-    if (selectedPlan === 'lowest' && planLowest) return planLowest;
-    if (selectedPlan === 'fewestShops' && planFewest) return planFewest;
-    if (selectedPlan === 'both' && planBoth) return planBoth;
-    return products;
-  })();
-
-  const sortedProducts = (() => {
-    if (sortMode === 'none') return activeProducts;
-    if (sortMode === 'lowest') {
-      return [...activeProducts].sort((a, b) => {
-        const pa = parseFloat(a.price.replace(/[^0-9.-]+/g, ''));
-        const pb = parseFloat(b.price.replace(/[^0-9.-]+/g, ''));
-        return (isNaN(pa) ? 0 : pa) - (isNaN(pb) ? 0 : pb);
-      });
-    }
-    if (sortMode === 'closest') {
-      return [...activeProducts].sort((a, b) => {
-        // Try to parse lat/lng hints embedded in store name via catalog name
-        const parse = (store: string) => {
-          const m = store.match(/lat:([0-9.+-]+) lng:([0-9.+-]+)/i);
-          if (!m) return { lat: undefined, lng: undefined } as any;
-          return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) } as any;
-        };
-        const da = distanceKm(parse(a.store));
-        const db = distanceKm(parse(b.store));
-        return da - db;
-      });
-    }
-    // smart = weigh both
-    return [...activeProducts].sort((a, b) => {
-      const pa = parseFloat(a.price.replace(/[^0-9.-]+/g, ''));
-      const pb = parseFloat(b.price.replace(/[^0-9.-]+/g, ''));
-      const parse = (store: string) => {
-        const m = store.match(/lat:([0-9.+-]+) lng:([0-9.+-]+)/i);
-        if (!m) return { lat: undefined, lng: undefined } as any;
-        return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) } as any;
-      };
-      const da = distanceKm(parse(a.store));
-      const db = distanceKm(parse(b.store));
-      const aScore = (isNaN(pa) ? 0 : pa) + (isFinite(da) ? da : 1000) * 0.5;
-      const bScore = (isNaN(pb) ? 0 : pb) + (isFinite(db) ? db : 1000) * 0.5;
-      return aScore - bScore;
-    });
-  })();
+  // Use products directly since we removed plan selector and sorting
+  const sortedProducts = products;
 
   // Rotate progress messages while loading
   useEffect(() => {
@@ -668,12 +623,9 @@ export default function ResultScreen() {
           }
         }
         setProducts(updated);
-        // Also refresh precomputed plans based on the newly optimized base if user wishes
-        computePlans(updated);
       }
       // Recompute totals excluding owned
-      const snapshot = (mode === 'lowest' || mode === 'fewestShops' || mode === 'both') ? updated : products;
-      const newTotal = snapshot.reduce((sum, p) => sum + (p.owned ? 0 : parsePrice(p.price)), 0);
+      const newTotal = updated.reduce((sum, p) => sum + (p.owned ? 0 : parsePrice(p.price)), 0);
       setTotalCost(newTotal);
     } finally {
       setOptimizing(false);
@@ -838,98 +790,11 @@ export default function ResultScreen() {
           </ThemedView>
         </ThemedView>
 
-        {/* Sort Controls */}
-        {/* Plan selector (AI-derived variants) */}
-        <ThemedView style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-          <TouchableOpacity 
-            onPress={() => setSelectedPlan('base')} 
-            style={[styles.newPlanButton, { borderWidth: 1, borderColor: selectedPlan === 'base' ? colors.primary : colors.border, backgroundColor: selectedPlan === 'base' ? colors.primary + '20' : 'transparent' }]}
-          >
-            <ThemedText style={{ color: selectedPlan === 'base' ? colors.primary : colors.text }}>Base</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setSelectedPlan('lowest')} 
-            style={[styles.newPlanButton, { borderWidth: 1, borderColor: selectedPlan === 'lowest' ? colors.primary : colors.border, backgroundColor: selectedPlan === 'lowest' ? colors.primary + '20' : 'transparent' }]}
-            disabled={!planLowest}
-          >
-            <ThemedText style={{ color: selectedPlan === 'lowest' ? colors.primary : colors.text }}>Lowest Total</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setSelectedPlan('fewestShops')} 
-            style={[styles.newPlanButton, { borderWidth: 1, borderColor: selectedPlan === 'fewestShops' ? colors.primary : colors.border, backgroundColor: selectedPlan === 'fewestShops' ? colors.primary + '20' : 'transparent' }]}
-            disabled={!planFewest}
-          >
-            <ThemedText style={{ color: selectedPlan === 'fewestShops' ? colors.primary : colors.text }}>Fewest Shops</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setSelectedPlan('both')} 
-            style={[styles.newPlanButton, { borderWidth: 1, borderColor: selectedPlan === 'both' ? colors.primary : colors.border, backgroundColor: selectedPlan === 'both' ? colors.primary + '20' : 'transparent' }]}
-            disabled={!planBoth}
-          >
-            <ThemedText style={{ color: selectedPlan === 'both' ? colors.primary : colors.text }}>Smart (Both)</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-
-        {/* Sort Controls (applied on top of plan variant) */}
-        <ThemedView style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-          <TouchableOpacity 
-            onPress={() => setSortMode('none')} 
-            style={[
-              styles.newPlanButton, 
-              { 
-                borderWidth: 1, 
-                borderColor: sortMode === 'none' ? colors.primary : colors.border,
-                backgroundColor: sortMode === 'none' ? colors.primary + '20' : 'transparent'
-              }
-            ]}
-          >
-            <ThemedText style={{ color: sortMode === 'none' ? colors.primary : colors.text }}>Default</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setSortMode('closest')} 
-            style={[
-              styles.newPlanButton, 
-              { 
-                borderWidth: 1, 
-                borderColor: sortMode === 'closest' ? colors.primary : colors.border,
-                backgroundColor: sortMode === 'closest' ? colors.primary + '20' : 'transparent'
-              }
-            ]}
-          >
-            <ThemedText style={{ color: sortMode === 'closest' ? colors.primary : colors.text }}>Closest</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setSortMode('lowest')} 
-            style={[
-              styles.newPlanButton, 
-              { 
-                borderWidth: 1, 
-                borderColor: sortMode === 'lowest' ? colors.primary : colors.border,
-                backgroundColor: sortMode === 'lowest' ? colors.primary + '20' : 'transparent'
-              }
-            ]}
-          >
-            <ThemedText style={{ color: sortMode === 'lowest' ? colors.primary : colors.text }}>Lowest Price</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => setSortMode('smart')} 
-            style={[
-              styles.newPlanButton, 
-              { 
-                borderWidth: 1, 
-                borderColor: sortMode === 'smart' ? colors.primary : colors.border,
-                backgroundColor: sortMode === 'smart' ? colors.primary + '20' : 'transparent'
-              }
-            ]}
-          >
-            <ThemedText style={{ color: sortMode === 'smart' ? colors.primary : colors.text }}>Smart</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
         
         {/* Optimize (recompute plans) */}
         <ThemedView style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
           <TouchableOpacity 
-            onPress={() => { setSelectedPlan('lowest'); handleOptimize('lowest'); }} 
+            onPress={() => handleOptimize('lowest')} 
             style={[
               styles.newPlanButton, 
               { 
@@ -945,7 +810,7 @@ export default function ResultScreen() {
             </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity 
-            onPress={() => { setSelectedPlan('fewestShops'); handleOptimize('fewestShops'); }} 
+            onPress={() => handleOptimize('fewestShops')} 
             style={[
               styles.newPlanButton, 
               { 
@@ -961,7 +826,7 @@ export default function ResultScreen() {
             </ThemedText>
           </TouchableOpacity>
           <TouchableOpacity 
-            onPress={() => { setSelectedPlan('both'); handleOptimize('both'); }} 
+            onPress={() => handleOptimize('both')} 
             style={[
               styles.newPlanButton, 
               { 
